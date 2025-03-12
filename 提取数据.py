@@ -3,9 +3,8 @@ import pandas as pd
 import re
 
 # 指定 PDF 文件路径
-pdf_path = "/Users/zhengshuyan/Downloads/笔顺/3/575-580.pdf"
+pdf_path = "/Users/zhengshuyan/Downloads/笔顺/1/009-581.pdf"
 doc = fitz.open(pdf_path)
-print("PDF 元数据：", doc.metadata)
 
 all_tables = []
 
@@ -14,17 +13,13 @@ for page_num in range(len(doc)):
     page = doc[page_num]
     tables = page.find_tables()  # 检测页面中的表格
 
-    # 打印页面原始文本以调试
-    raw_text = page.get_text()
-    print(f"第 {page_num} 页原始文本：\n{raw_text}\n")
-
     for table_idx in range(min(2, len(tables.tables))):  # 限制只处理前两个表格
         table_df = tables.tables[table_idx].to_pandas()
 
         if table_df.empty:
-            print(f"第 {page_num} 页表格 {table_idx} 为空，跳过")
             continue
         if table_idx == 1 and len(table_df) > 0 and table_df.iloc[0, 0] == "汉字":
+            # 跳过标题行，只保留数据行
             table_df = table_df[1:].reset_index(drop=True)
 
         expected_columns = ["汉字", "笔顺", "《字表》\n序号", "UCS"]
@@ -32,31 +27,38 @@ for page_num in range(len(doc)):
             table_df = table_df.iloc[:, :4]  # 确保只取前4列
             table_df.columns = expected_columns
         else:
-            print(f"第 {page_num} 页表格 {table_idx} 列数不足，跳过")
             continue
 
-        # 修复汉字乱码，优先尝试 UTF-16（UCS 兼容）
-        def fix_encoding(text):
-            if pd.isna(text):
-                return text
-            original_text = text
+        # 第二列（笔顺）处理
+        table_df["笔顺"] = table_df["笔顺"].str.replace("\n", " ", regex=False)
+        table_df["笔顺"] = table_df["笔顺"].str.replace(r"[^0-9\s]", "", regex=True)
+        table_df["笔顺"] = (
+            table_df["笔顺"].str.replace(r"\s+", " ", regex=True).str.strip()
+        )
+
+        # 第三列（《字表》\n序号）：删除所有换行符
+        table_df["《字表》\n序号"] = table_df["《字表》\n序号"].str.replace("\n", "", regex=False)
+
+        # 第四列（UCS）清理
+        def clean_ucs(value):
+            if pd.isna(value):
+                return None
+            value = str(value).replace("\n", "")
+            match = re.search(r"[0-9A-F]{4,}", value)
+            return match.group(0) if match else value
+
+        table_df["UCS"] = table_df["UCS"].apply(clean_ucs)
+
+        # 使用 UCS 码点反向推导汉字
+        def ucs_to_char(ucs):
+            if pd.isna(ucs) or not re.match(r"[0-9A-F]{4,}", str(ucs)):
+                return None
             try:
-                # 优先尝试 UTF-16
-                decoded_text = text.encode().decode('utf-16', errors='replace')
-                if any(ord(c) > 127 for c in decoded_text):  # 确认包含中文
-                    print(f"成功使用 UTF-16 解码：{original_text} -> {decoded_text}")
-                    return decoded_text
-                # 备用 UTF-8
-                decoded_text = text.encode().decode('utf-8', errors='replace')
-                print(f"使用 UTF-8 解码：{original_text} -> {decoded_text}")
-                return decoded_text
-            except (UnicodeEncodeError, UnicodeDecodeError) as e:
-                print(f"解码失败，原始值：{original_text}, 错误：{e}")
-                return original_text
+                return chr(int(ucs, 16))  # 将十六进制 UCS 转换为字符
+            except ValueError:
+                return None
 
-        table_df["汉字"] = table_df["汉字"].apply(fix_encoding)
-
-        # 后续处理逻辑保持不变...
+        table_df["汉字"] = table_df["UCS"].apply(ucs_to_char)  # 用处理过的 UCS 反推汉字覆盖汉字列
 
         # 打印每个表格处理后的最终结果
         print(f"第 {page_num} 页表格 {table_idx} 处理后的数据：")
@@ -69,7 +71,7 @@ if all_tables:
 else:
     final_df = pd.DataFrame()
 
-final_df.to_csv("test3.csv", index=False, encoding="utf-8-sig")
+final_df.to_csv("test5.csv", index=False, encoding="utf-8-sig")
 
 doc.close()
 
