@@ -22,7 +22,7 @@ with open('datasets.csv', 'r', encoding='utf-8-sig') as csvfile:
         # 打几个样片
         # if i % 100 != 0:
         #     continue
-        
+
         character = row[0]  # 提取第一列的汉字
 
         # 创建新图片
@@ -42,8 +42,6 @@ with open('datasets.csv', 'r', encoding='utf-8-sig') as csvfile:
 
         # 在图片上绘制文字
         draw.text((x, y), character, font=font, fill=text_color)
-
-
 
         # 保存图片，文件名即为汉字本身
         img.save(f"./pic/{character}.png")
