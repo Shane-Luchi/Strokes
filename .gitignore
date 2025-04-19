@@ -1,0 +1,12 @@
+data/train_dataset_processed/
+data/val_dataset_processed/
+output/
+output2/
+output3/
+output4/
+logs/
+*.log
+.vscode/
+output4
+output4/
+output4/

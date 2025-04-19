@@ -1,0 +1,132 @@
+[
+  {
+    "id": "identity_1",
+    "conversations": [
+      {
+        "from": "user",
+        "value": "给出图片中汉字的笔画顺序<|vision_start|>pic/一.png<|vision_end|>"
+      },
+      {
+        "from": "assistant",
+        "value": "横"
+      }
+    ]
+  },
+  {
+    "id": "identity_2",
+    "conversations": [
+      {
+        "from": "user",
+        "value": "给出图片中汉字的笔画顺序<|vision_start|>pic/乙.png<|vision_end|>"
+      },
+      {
+        "from": "assistant",
+        "value": "横折钩"
+      }
+    ]
+  },
+  {
+    "id": "identity_3",
+    "conversations": [
+      {
+        "from": "user",
+        "value": "给出图片中汉字的笔画顺序<|vision_start|>pic/二.png<|vision_end|>"
+      },
+      {
+        "from": "assistant",
+        "value": "横 横"
+      }
+    ]
+  },
+  {
+    "id": "identity_4",
+    "conversations": [
+      {
+        "from": "user",
+        "value": "给出图片中汉字的笔画顺序<|vision_start|>pic/十.png<|vision_end|>"
+      },
+      {
+        "from": "assistant",
+        "value": "横 竖"
+      }
+    ]
+  },
+  {
+    "id": "identity_5",
+    "conversations": [
+      {
+        "from": "user",
+        "value": "给出图片中汉字的笔画顺序<|vision_start|>pic/丁.png<|vision_end|>"
+      },
+      {
+        "from": "assistant",
+        "value": "横 竖"
+      }
+    ]
+  },
+  {
+    "id": "identity_6",
+    "conversations": [
+      {
+        "from": "user",
+        "value": "给出图片中汉字的笔画顺序<|vision_start|>pic/厂.png<|vision_end|>"
+      },
+      {
+        "from": "assistant",
+        "value": "横 撇"
+      }
+    ]
+  },
+  {
+    "id": "identity_7",
+    "conversations": [
+      {
+        "from": "user",
+        "value": "给出图片中汉字的笔画顺序<|vision_start|>pic/七.png<|vision_end|>"
+      },
+      {
+        "from": "assistant",
+        "value": "横 横折钩"
+      }
+    ]
+  },
+  {
+    "id": "identity_8",
+    "conversations": [
+      {
+        "from": "user",
+        "value": "给出图片中汉字的笔画顺序<|vision_start|>pic/卜.png<|vision_end|>"
+      },
+      {
+        "from": "assistant",
+        "value": "竖 捺"
+      }
+    ]
+  },
+  {
+    "id": "identity_9",
+    "conversations": [
+      {
+        "from": "user",
+        "value": "给出图片中汉字的笔画顺序<|vision_start|>pic/八.png<|vision_end|>"
+      },
+      {
+        "from": "assistant",
+        "value": "撇 捺"
+      }
+    ]
+  },
+  {
+    "id": "identity_10",
+    "conversations": [
+      {
+        "from": "user",
+        "value": "给出图片中汉字的笔画顺序<|vision_start|>pic/人.png<|vision_end|>"
+      },
+      {
+        "from": "assistant",
+        "value": "撇 捺"
+      }
+    ]
+  }
+]
