@@ -6,6 +6,9 @@ output3/
 output4/
 logs/
 *.log
+*.pt
+*.pth
+*.safetensors
 .vscode/
 output4
 output4/
