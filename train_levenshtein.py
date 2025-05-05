@@ -17,7 +17,7 @@ from nltk.translate.bleu_score import sentence_bleu
 from rouge import Rouge
 from Levenshtein import distance as levenshtein_distance
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 # ====================== 新增EOS定义 ======================
 EOS_TOKEN = "<EOS>"
@@ -219,13 +219,13 @@ class CustomTrainer(Trainer):
 with open("data/train_data.json", "r") as f:
     data = json.load(f)
 # 随机打乱数据
-random.seed(42) 
+random.seed(42)
 random.shuffle(data)
 
 
 total_size = len(data)
-train_size = int(total_size * 0.97)
-val_size = int(total_size * 0.02)
+train_size = int(total_size * 0.9)
+val_size = int(total_size * 0.05)
 test_size = total_size - train_size - val_size
 
 train_data = data[:train_size]
