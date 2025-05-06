@@ -15,7 +15,7 @@ import os
 import random
 from nltk.translate.bleu_score import sentence_bleu
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 # ====================== 新增EOS定义 ======================
 EOS_TOKEN = "<EOS>"
