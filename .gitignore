@@ -4,6 +4,7 @@ output/
 output2/
 output3/
 output4/
+LLaVA/
 logs/
 *.log
 *.pt
