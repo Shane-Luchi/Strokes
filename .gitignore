@@ -4,6 +4,9 @@ output/
 output2/
 output3/
 output4/
+output_full/
+output_levenshtein/
+output_levenshtein_lora/
 LLaVA/
 logs/
 *.log

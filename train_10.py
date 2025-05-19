@@ -13,7 +13,7 @@ from transformers import (
 import json
 import time
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "6"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"  # 禁用 tokenizers 并行处理，避免警告
 
 def process_func(example):
@@ -204,8 +204,8 @@ config = LoraConfig(
         "down_proj",
     ],
     inference_mode=False,
-    r=64,
-    lora_alpha=16,
+    r=32,
+    lora_alpha=64,
     lora_dropout=0.05,
     bias="none",
 )
@@ -218,7 +218,7 @@ args = TrainingArguments(
     per_device_train_batch_size=16,
     gradient_accumulation_steps=1,
     logging_steps=10,
-    num_train_epochs=5,
+    num_train_epochs=15,
     save_steps=1,
     learning_rate=5e-5,
     save_on_each_node=True,

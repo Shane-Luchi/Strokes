@@ -1,3 +1,10 @@
+'''
+
+CUDA_VISIBLE_DEVICES=2 nohup python train_levenshtein_lora.py > logs/train_levenshtein_lora_519.log 2>&1 &
+
+'''
+
+import torch
 from datasets import Dataset
 from modelscope import snapshot_download, AutoTokenizer
 from qwen_vl_utils import process_vision_info
@@ -12,15 +19,12 @@ from transformers import (
 import json
 import time
 import os
+import random
 from nltk.translate.bleu_score import sentence_bleu
-
 from rouge import Rouge
 from Levenshtein import distance as levenshtein_distance
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-import torch
-torch.cuda.init()
-torch.cuda.set_device(0)
+# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 # ====================== 新增EOS定义 ======================
 EOS_TOKEN = "<EOS>"
@@ -42,7 +46,6 @@ model = Qwen2VLForConditionalGeneration.from_pretrained(
     trust_remote_code=True,
 )
 model.resize_token_embeddings(len(tokenizer))  # 🚨 调整Embedding以适配新token
-model.enable_input_require_grads()
 
 # ===================== 处理函数 =====================
 def process_func(example):
@@ -80,7 +83,7 @@ def process_func(example):
 
     # ======= 添加EOS Token到标签末尾 ========
     response = tokenizer(f"{output_content}{EOS_TOKEN}", add_special_tokens=False)
-
+    #print("response input_ids:", response["input_ids"])
     input_ids = instruction["input_ids"][0] + response["input_ids"] + [tokenizer.pad_token_id]
     attention_mask = instruction["attention_mask"][0] + response["attention_mask"] + [1]
     labels = [-100] * len(instruction["input_ids"][0]) + response["input_ids"] + [tokenizer.pad_token_id]
@@ -91,7 +94,7 @@ def process_func(example):
         labels = labels[:MAX_LENGTH]
 
     vocab_size = tokenizer.vocab_size
-    labels = [label if label == -100 or (0 <= label < vocab_size) else -100 for label in labels]
+    labels = [label if label == -100 or (0 <= label < vocab_size) or (label == tokenizer.eos_token_id) else -100 for label in labels]
 
     input_ids = torch.tensor(input_ids)
     attention_mask = torch.tensor(attention_mask)
@@ -109,12 +112,6 @@ def process_func(example):
 
 # ===================== 推理函数 =====================
 def predict(messages, model, max_new_tokens=64, temperature=1.0, top_p=0.9, top_k=50):
-    """
-    修改说明：
-      1. 增加了 temperature, top_p, top_k 参数，增强生成的多样性，
-         避免模型在生成较短序列时过早停下或重复。
-      2. max_new_tokens 设置为较高值，以确保生成足够的内容。
-    """
     text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     image_inputs, video_inputs = process_vision_info(messages)
     inputs = processor(
@@ -124,9 +121,8 @@ def predict(messages, model, max_new_tokens=64, temperature=1.0, top_p=0.9, top_
         padding=True,
         return_tensors="pt",
     )
+    inputs = inputs.to("cuda")
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    inputs = inputs.to(device)
     generated_ids = model.generate(
         **inputs,
         max_new_tokens=max_new_tokens,
@@ -225,24 +221,30 @@ class CustomTrainer(Trainer):
         return metrics
 
         
-# ######
+# #####
 # # ===================== 加载数据 =====================
 # with open("data/train_data.json", "r") as f:
 #     data = json.load(f)
+# # 随机打乱数据
+# random.seed(42)
+# random.shuffle(data)
+
 
 # total_size = len(data)
-# train_size = int(total_size * 0.97)
-# val_size = int(total_size * 0.02)
+# train_size = int(total_size * 0.9)
+# val_size = int(total_size * 0.05)
 # test_size = total_size - train_size - val_size
 
 # train_data = data[:train_size]
 # val_data = data[train_size:train_size + val_size]
 # test_data = data[train_size + val_size:]
 
-# extra_indices = [i for i in range(0, 8105, 100)]
-# extra_data = [data[i] for i in extra_indices]
-# # 将 extra_data 放在 val_data 的前面
-# val_data = extra_data + val_data
+# # extra_indices = [i for i in range(0, 8105, 100)]
+# # extra_data = [data[i] for i in extra_indices]
+# # # 将 extra_data 放在 val_data 的前面
+# # val_data = extra_data + val_data
+
+
 
 # with open("data/data_vl_train.json", "w") as f:
 #     json.dump(train_data, f)
@@ -251,27 +253,28 @@ class CustomTrainer(Trainer):
 # with open("data/data_vl_test.json", "w") as f:
 #     json.dump(test_data, f)
 
-#####
+
 # train_ds = Dataset.from_json("data/data_vl_train.json")
 # val_ds = Dataset.from_json("data/data_vl_val.json")
-#
+
 # train_dataset = train_ds.map(process_func, desc="处理后的数据集")
 # val_dataset = val_ds.map(process_func, desc="处理后的验证数据集")
-#
+
 # train_dataset.save_to_disk("data/train_dataset_processed")
 # val_dataset.save_to_disk("data/val_dataset_processed")
-#####
+# #####
 
 # 加载处理后数据
 from datasets import load_from_disk
 train_dataset = load_from_disk("data/train_dataset_processed")
 val_dataset = load_from_disk("data/val_dataset_processed")
 
+
 # ===================== 训练参数 =====================
 args = TrainingArguments(
-    output_dir="./output_lora/Qwen2-VL-2B",
-    per_device_train_batch_size=16,
-    gradient_accumulation_steps=2,
+    output_dir="./output_levenshtein_lora/Qwen2-VL-2B",
+    per_device_train_batch_size=8,
+    gradient_accumulation_steps=4,
     logging_steps=10,
     num_train_epochs=50,
     save_steps=100,
@@ -285,8 +288,7 @@ args = TrainingArguments(
     bf16=True,
     dataloader_num_workers=8,
     evaluation_strategy="epoch",
-    per_device_eval_batch_size=16,
-
+    per_device_eval_batch_size=8,
 )
 
 config = LoraConfig(
@@ -296,13 +298,16 @@ config = LoraConfig(
         "gate_proj", "up_proj", "down_proj",
     ],
     inference_mode=False,
-    r=16,
-    lora_alpha=32, #一般是2r
+    r=32,
+    lora_alpha=64, #一般是2r
     lora_dropout=0.05,
     bias="none",
 )
 peft_model = get_peft_model(model, config)
 
+
+
+# 不再使用 LoRA 配置，直接进行全量微调
 trainer = CustomTrainer(
     model=peft_model,
     args=args,
@@ -314,21 +319,35 @@ trainer = CustomTrainer(
 print("--------------starting to train---------------")
 trainer.train()
 
+
+
+print("--------------starting to test---------------")
+
+checkpoint_path = "./output_levenshtein_lora/Qwen2-VL-2B/checkpoint-8000"  # 确保路径正确
+val_peft_model = PeftModel.from_pretrained(model, checkpoint_path, config=config)
+val_peft_model.to("cuda")
+
+
 # ===================== 测试模型 =====================
 with open("data/data_vl_test.json", "r") as f:
     test_dataset = json.load(f)
 
-peft_model.eval() 
-
 rouge = Rouge()
-total_rouge = {"rouge-1": 0, "rouge-2": 0, "rouge-l": 0}
-total_levenshtein = 0
-total_samples = len(test_dataset)
 
+rouge_score_avg = {"rouge-1": 0, "rouge-2": 0, "rouge-l": 0}
+levenshtein_avg = 0
+total_levenshtein = 0
+bleu_score_avg = 0
+total_samples = len(test_dataset)
+correct_samples  = 0
 for item in test_dataset:
     input_image_prompt = item["conversations"][0]["value"]
     origin_image_path = input_image_prompt.split("<|vision_start|>")[1].split("<|vision_end|>")[0]
     origin_image_path = f"data/{origin_image_path}"
+    true_output = item["conversations"][1]["value"]
+    chinese_character = os.path.basename(origin_image_path).split('.')[0]
+    print(f"Processing character: {chinese_character}")
+
     messages = [
         {
             "role": "user",
@@ -338,25 +357,34 @@ for item in test_dataset:
             ],
         }
     ]
-    response = predict(messages, peft_model)
-    messages.append({"role": "assistant", "content": f"{response}"})
-    true_output = item["conversations"][1]["value"]
-
-    print(f"Predicted: {response.strip()}")
+    pred_output = predict(messages, val_peft_model)
+    print(f"Predicted: {pred_output.strip()}")
     print(f"True     : {true_output.strip()}")
+    if pred_output.strip() == true_output.strip():
+        correct_samples += 1
+
+    # 计算 BLEU 分数
+    bleu_score = sentence_bleu([true_output.split()], pred_output.split())
+    print(f"BLEU Score: {bleu_score}")
+    bleu_score_avg += bleu_score
 
     # 计算 ROUGE 分数
-    rouge_scores = rouge.get_scores(response, true_output)[0]
-    for key in total_rouge:
-        total_rouge[key] += rouge_scores[key]["f"]
+    rouge_scores = rouge.get_scores(pred_output, true_output)[0]
+    for key in rouge_score_avg:
+        rouge_score_avg[key] += rouge_scores[key]["f"]
 
     # 计算 Levenshtein 距离
-    total_levenshtein += levenshtein_distance(response.strip(), true_output.strip())
+    levenshtein_avg += levenshtein_distance(pred_output.strip(), true_output.strip())
 
 # 平均化指标
-for key in total_rouge:
-    total_rouge[key] /= total_samples
-avg_levenshtein = total_levenshtein / total_samples
+total_samples = max(total_samples, 1)  # 防止除以零
+bleu_score_avg /= total_samples
+for key in rouge_score_avg:
+    rouge_score_avg[key] /= total_samples
+levenshtein_avg /= total_samples
 
-print(f"AVG ROUGE Scores: {total_rouge}")
-print(f"AVG Levenshtein Distance: {avg_levenshtein}")
+print(f"AVG BLEU Score: {bleu_score_avg}")
+print(f"AVG ROUGE Scores: {rouge_score_avg}")
+print(f"AVG Levenshtein Distance: {levenshtein_avg}")
+accuracy = correct_samples / total_samples
+print(f"Test Accuracy: {accuracy:.4f} ({correct_samples}/{total_samples})")
