@@ -1,12 +1,15 @@
-data/train_dataset_processed/
-data/val_dataset_processed/
-output/
-output2/
-output3/
-output4/
-output_full/
-output_levenshtein/
-output_levenshtein_lora/
+data/
+output*
+# output/
+# output2/
+# output3/
+# output4/
+# output_full/
+# output_levenshtein/
+# output_levenshtein_lora/
+# output_levenshtein_language/
+# output_levenshtein_language_/home/LLMs/Qwen/Qwen2.5-1.5B-Instruct/home/LLMs/Qwen/Qwen2.5-1.5B-Instruct/
+# output_levenshtein_language_Qwen2.5-7B-Instruct
 LLaVA/
 logs/
 *.log
@@ -14,7 +17,9 @@ logs/
 *.pth
 *.safetensors
 .vscode/
-output4
-output4/
-output4/
-output_full/
+# output4
+# output4/
+# output4/
+# output_full/
+!data/train_data_language.json
+!data/pic
