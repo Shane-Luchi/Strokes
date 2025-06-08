@@ -4,18 +4,20 @@ import os
 
 # 定义字体路径和对应的子文件夹名称
 font_paths = [
-    "../fonts/NotoSerifCJKsc-Regular.otf",
-    "../fonts/SourceHanSansCN-VF.otf",
-    "../fonts/chinese.simfang.ttf",
-    "../fonts/simkai.ttf",
-    "../fonts/SentyWEN2017.ttf"
+    # "../fonts/NotoSerifCJKsc-Regular.otf",
+    # "../fonts/SourceHanSansCN-VF.otf",
+    # "../fonts/chinese.simfang.ttf",
+    "../fonts/AlibabaPuHuiTi-3-55-RegularL3.ttf",
+    # "../fonts/simkai.ttf",
+    # "../fonts/SentyWEN2017.ttf"
 ]
 font_names = [
-    "noto_serif",
-    "source_han_sans",
-    "fangsong",
-    "kaiti",
-    "hanyi_senty_wen"
+    # "noto_serif",
+    # "source_han_sans",
+    # "fangsong",
+    "AlibabaPuHuiTi",
+    # "kaiti",
+    # "hanyi_senty_wen"
 ]
 
 # 创建图片保存的子文件夹

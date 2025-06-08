@@ -22,4 +22,4 @@ logs/
 # output4/
 # output_full/
 !data/train_data_language.json
-!data/pic
+#!data/pic

@@ -5,7 +5,7 @@ import os
 font_names = [
     "noto_serif",
     "source_han_sans",
-    "fangsong",
+    "AlibabaPuHuiTi",
     "kaiti",
     "hanyi_senty_wen"
 ]

@@ -1,5 +1,6 @@
 # Strokes
 微调一个汉字笔顺的模型
+修改.gitignore要注意
 
 * 首先从国家网站上了解到了再2020年出版的国家规定，数据集从这个规定上提取。
 * 编码问题
@@ -153,3 +154,6 @@ AVG ROUGE Scores: {'rouge-1': 0.8945059270028934, 'rouge-2': 0.49693320680076997
 AVG Levenshtein Distance: 10.403940886699507
 Test Accuracy: 0.0099 (4/406)
 ```
+
+docvqa的效果呢
+发现也在上面有一些提升 详见这两个文件[logs/docvqa_results_logs](logs/docvqa_results_logs)

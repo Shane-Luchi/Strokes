@@ -1,6 +1,6 @@
 """
 CUDA_VISIBLE_DEVICES=0,1 python train_levenshtein_language.py
-CUDA_VISIBLE_DEVICES=0,1 accelerate launch train_levenshtein_language.py
+CUDA_VISIBLE_DEVICES=0,1,2,3 accelerate launch train_levenshtein_language.py
 CUDA_VISIBLE_DEVICES=3 nohup python train_levenshtein_language.py > logs/train_levenshtein_language.log 2>&1 &
 
 CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 train_levenshtein_language.py
@@ -11,6 +11,8 @@ CUDA_VISIBLE_DEVICES=0,1 NCCL_P2P_DISABLE=1 torchrun --nproc_per_node=2 train_le
 
 CUDA_VISIBLE_DEVICES=0,1 NCCL_P2P_DISABLE=1 nohup torchrun --nproc_per_node=2 train_levenshtein_language.py > logs/train_levenshtein_language_qwen2.5_7B_$(date +%Y%m%d_%H%M%S).log 2>&1 &
 
+因为7B会OOM，所以采用了accelerate来多卡训练加速，速度不知道，但是运行起来了，多卡推理有问题，重复推理。
+CUDA_VISIBLE_DEVICES=0,1,2,3 NCCL_P2P_DISABLE=1 accelerate launch train_levenshtein_language.py
 """
 
 from swanlab.integration.transformers import SwanLabCallback
@@ -322,7 +324,7 @@ val_dataset = load_from_disk(f"data/val_dataset_processed_language_{MODEL_NAME}"
 args = TrainingArguments(
     output_dir=f"./output_levenshtein_language_{MODEL_NAME}/{MODEL_NAME}",
     optim="adamw_bnb_8bit",
-    per_device_train_batch_size=2,
+    per_device_train_batch_size=8,
     gradient_accumulation_steps=2,
     logging_steps=10,
     num_train_epochs=20,

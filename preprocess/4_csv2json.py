@@ -66,6 +66,14 @@ for row in df.itertuples():
                 }
             ]
         }
+
+
+
+
+        
+
+
+
         train_data.append(entry)
         conversation_id += 1  # 递增 id
 
